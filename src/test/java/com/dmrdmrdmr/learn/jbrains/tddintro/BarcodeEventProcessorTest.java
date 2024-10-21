@@ -1,5 +1,8 @@
 package com.dmrdmrdmr.learn.jbrains.tddintro;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class BarcodeEventProcessorTest {
 
     /*
@@ -16,6 +19,13 @@ public class BarcodeEventProcessorTest {
      */
 
     // t1 - received null barcode -> "Null barcode" sent
+    @Test
+    void testNullBarcode() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor();
+        bep.onBarcode(null);
+        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+    }
+
     // t2 - received barcode with no product -> "Product not found" sent
     // t3 - received barcode with product and product has price -> price sent
     // t4 - received barcode with product but no price -> "Price not set" sent
