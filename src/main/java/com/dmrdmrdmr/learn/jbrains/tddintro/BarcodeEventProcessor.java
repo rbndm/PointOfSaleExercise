@@ -1,24 +1,25 @@
 package com.dmrdmrdmr.learn.jbrains.tddintro;
 
-import java.util.Set;
+import java.util.List;
 
 public class BarcodeEventProcessor {
 
-    private final Set<String> barcodesWithoutProduct;
+    private final List<String> barcodesWithProduct;
     private String postedMessage;
 
     public BarcodeEventProcessor() {
-        this(null);
+        this.barcodesWithProduct = null;
     }
 
-    public BarcodeEventProcessor(Set<String> barcodesWithoutProduct) {
-        this.barcodesWithoutProduct = barcodesWithoutProduct;
+    public BarcodeEventProcessor(List<String> barcodesWithProduct) {
+        this.barcodesWithProduct = barcodesWithProduct;
     }
+
 
     public void onBarcode(String barcode) {
         if(barcode == null) {
             this.postedMessage = "Null barcode";
-        } else if(barcodesWithoutProduct.contains(barcode)) {
+        } else if(barcodesWithProduct != null && !barcodesWithProduct.contains(barcode)) {
             this.postedMessage = "Product not found";
         }
     }
