@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.Set;
+
 public class BarcodeEventProcessorTest {
 
     /*
@@ -32,7 +34,7 @@ public class BarcodeEventProcessorTest {
     @ParameterizedTest
     @CsvSource(value = {"012345", "012346", "045678"})
     void testBarcodesWithNoProduct(String barcode) {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor();
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(Set.of("012345", "012346", "045678"));
         bep.onBarcode(barcode);
         Assertions.assertEquals("Product not found", bep.getPostedMessage(), barcode);
     }
