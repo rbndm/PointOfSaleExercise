@@ -5,6 +5,8 @@ import java.util.List;
 public class BarcodeEventProcessor {
 
     private final List<String> barcodesWithProduct;
+    private final List<Product> products = List.of(new Product("112345", null));
+
     private String postedMessage;
 
     public BarcodeEventProcessor() {
@@ -21,6 +23,12 @@ public class BarcodeEventProcessor {
             this.postedMessage = "Null barcode";
         } else if(barcodesWithProduct != null && !barcodesWithProduct.contains(barcode)) {
             this.postedMessage = "Product not found";
+        } else if(barcodesWithProduct.contains(barcode)) {
+            this.postedMessage = products.stream()
+                    .filter(p -> p.barcode().equals(barcode))
+                    .findAny()
+                    .map(Product::price)
+                    .orElse("Price not set");
         }
     }
 
