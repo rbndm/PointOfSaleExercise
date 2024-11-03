@@ -52,7 +52,15 @@ public class BarcodeEventProcessorTest {
     // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
 
     // New things to check ...
-    // t6 - null product list
+    @Test
+    void testNullBarcodeWithNullProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
+        bep.onBarcode(null);
+        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+    }
+
+
+
     // t7 - empty product list
 
 
