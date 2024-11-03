@@ -74,5 +74,10 @@ public class BarcodeEventProcessorTest {
         Assertions.assertEquals("Null barcode", bep.getPostedMessage());
     }
 
-
+    @Test
+    void testBarcodeWithEmptyProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
+        bep.onBarcode("13213456");
+        Assertions.assertEquals("Product not found", bep.getPostedMessage());
+    }
 }
