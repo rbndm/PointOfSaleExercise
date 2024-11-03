@@ -5,6 +5,10 @@ import java.util.Optional;
 
 public class BarcodeEventProcessor {
 
+    public static final String MSG_NULL_BARCODE = "Null barcode";
+    public static final String MSG_PRICE_NOT_SET = "Price not set";
+    public static final String MSG_PRODUCT_NOT_FOUND = "Product not found";
+
     private final List<Product> products;
 
     private String postedMessage;
@@ -16,16 +20,16 @@ public class BarcodeEventProcessor {
 
     public void onBarcode(String barcode) {
         if(barcode == null) {
-            this.postedMessage = "Null barcode";
+            this.postedMessage = MSG_NULL_BARCODE;
         } else {
             if(products != null) {
                 this.postedMessage = products.stream()
                         .filter(p -> barcode.equals(p.barcode()))
                         .findFirst()
-                        .map(p -> Optional.ofNullable(p.price()).orElse("Price not set"))
-                        .orElse("Product not found");
+                        .map(p -> Optional.ofNullable(p.price()).orElse(MSG_PRICE_NOT_SET))
+                        .orElse(MSG_PRODUCT_NOT_FOUND);
             } else {
-                this.postedMessage = "Product not found";
+                this.postedMessage = MSG_PRODUCT_NOT_FOUND;
             }
         }
     }
