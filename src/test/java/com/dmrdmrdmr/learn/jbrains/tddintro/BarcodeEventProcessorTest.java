@@ -25,7 +25,7 @@ public class BarcodeEventProcessorTest {
     // t1 - received null barcode -> "Null barcode" sent
     @Test
     void testNullBarcode() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor();
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
         bep.onBarcode(null);
         Assertions.assertEquals("Null barcode", bep.getPostedMessage());
     }
@@ -34,7 +34,7 @@ public class BarcodeEventProcessorTest {
     @ParameterizedTest
     @CsvSource(value = {"012345", "012346", "045678"})
     void testBarcodesWithNoProduct(String barcode) {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of("112345"));
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
         bep.onBarcode(barcode);
         Assertions.assertEquals("Product not found", bep.getPostedMessage(), barcode);
     }
@@ -44,12 +44,16 @@ public class BarcodeEventProcessorTest {
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
     void testBarcodeForProductWithoutPrice() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of("112345"));
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
         bep.onBarcode("112345");
         Assertions.assertEquals("Price not set", bep.getPostedMessage());
     }
 
     // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
+
+    // New things to check ...
+    // t6 - null product list
+    // t7 - empty product list
 
 
 }
