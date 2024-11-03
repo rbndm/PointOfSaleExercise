@@ -17,12 +17,16 @@ public class BarcodeEventProcessor {
     public void onBarcode(String barcode) {
         if(barcode == null) {
             this.postedMessage = "Null barcode";
-        } else if(products != null) {
-            this.postedMessage = products.stream()
-                    .filter(p -> barcode.equals(p.barcode()))
-                    .findFirst()
-                    .map(p -> Optional.ofNullable(p.price()).orElse("Price not set"))
-                    .orElse("Product not found");
+        } else {
+            if(products != null) {
+                this.postedMessage = products.stream()
+                        .filter(p -> barcode.equals(p.barcode()))
+                        .findFirst()
+                        .map(p -> Optional.ofNullable(p.price()).orElse("Price not set"))
+                        .orElse("Product not found");
+            } else {
+                this.postedMessage = "Product not found";
+            }
         }
     }
 
