@@ -5,7 +5,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSession;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class BarcodeEventProcessorTest {
 
@@ -40,6 +56,112 @@ public class BarcodeEventProcessorTest {
     }
 
     // t3 - received barcode with product and product has price -> price sent
+    @Test
+    void testBarcodeWithProductAndNoConnectionErrors() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("234567", "23,51$")), new HttpClient() {
+            @Override
+            public Optional<CookieHandler> cookieHandler() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<Duration> connectTimeout() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Redirect followRedirects() {
+                return null;
+            }
+
+            @Override
+            public Optional<ProxySelector> proxy() {
+                return Optional.empty();
+            }
+
+            @Override
+            public SSLContext sslContext() {
+                return null;
+            }
+
+            @Override
+            public SSLParameters sslParameters() {
+                return null;
+            }
+
+            @Override
+            public Optional<Authenticator> authenticator() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Version version() {
+                return null;
+            }
+
+            @Override
+            public Optional<Executor> executor() {
+                return Optional.empty();
+            }
+
+            @Override
+            public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+                return new HttpResponse<T>() {
+                    @Override
+                    public int statusCode() {
+                        return 200;
+                    }
+
+                    @Override
+                    public HttpRequest request() {
+                        return null;
+                    }
+
+                    @Override
+                    public Optional<HttpResponse<T>> previousResponse() {
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public HttpHeaders headers() {
+                        return null;
+                    }
+
+                    @Override
+                    public T body() {
+                        return null;
+                    }
+
+                    @Override
+                    public Optional<SSLSession> sslSession() {
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public URI uri() {
+                        return null;
+                    }
+
+                    @Override
+                    public Version version() {
+                        return null;
+                    }
+                };
+            }
+
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+                return null;
+            }
+
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler, HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
+                return null;
+            }
+        });
+        bep.onBarcode("234567");
+        Assertions.assertEquals("23,51$", bep.getPostedMessage());
+    }
 
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
@@ -50,6 +172,13 @@ public class BarcodeEventProcessorTest {
     }
 
     // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
+    @Test
+    void testBarcodeForProductWithPriceButHttpErrorResponse_FirstTime() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("645789", "45,12$")), new MockHttpClientThrowingErrorResponse());
+        bep.onBarcode("645789");
+        Assertions.assertEquals("Price not set", bep.getPostedMessage());
+        Assertions.assertEquals(500, bep.getResponseCode());
+    }
 
     // New things to check ...
     @Test
@@ -79,5 +208,108 @@ public class BarcodeEventProcessorTest {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
         bep.onBarcode("13213456");
         Assertions.assertEquals("Product not found", bep.getPostedMessage());
+    }
+
+    private static class MockHttpClientThrowingErrorResponse extends HttpClient {
+
+        @Override
+        public Optional<CookieHandler> cookieHandler() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<Duration> connectTimeout() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Redirect followRedirects() {
+            return null;
+        }
+
+        @Override
+        public Optional<ProxySelector> proxy() {
+            return Optional.empty();
+        }
+
+        @Override
+        public SSLContext sslContext() {
+            return null;
+        }
+
+        @Override
+        public SSLParameters sslParameters() {
+            return null;
+        }
+
+        @Override
+        public Optional<Authenticator> authenticator() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Version version() {
+            return null;
+        }
+
+        @Override
+        public Optional<Executor> executor() {
+            return Optional.empty();
+        }
+
+        @Override
+        public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+            return new HttpResponse<T>() {
+                @Override
+                public int statusCode() {
+                    return 500;
+                }
+
+                @Override
+                public HttpRequest request() {
+                    return request;
+                }
+
+                @Override
+                public Optional<HttpResponse<T>> previousResponse() {
+                    return Optional.empty();
+                }
+
+                @Override
+                public HttpHeaders headers() {
+                    return null;
+                }
+
+                @Override
+                public T body() {
+                    return null;
+                }
+
+                @Override
+                public Optional<SSLSession> sslSession() {
+                    return Optional.empty();
+                }
+
+                @Override
+                public URI uri() {
+                    return null;
+                }
+
+                @Override
+                public Version version() {
+                    return null;
+                }
+            };
+        }
+
+        @Override
+        public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+            return null;
+        }
+
+        @Override
+        public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler, HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
+            return null;
+        }
     }
 }
