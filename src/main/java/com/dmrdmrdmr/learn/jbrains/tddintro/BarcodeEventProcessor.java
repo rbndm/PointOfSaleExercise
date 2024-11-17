@@ -14,6 +14,8 @@ public class BarcodeEventProcessor {
     public static final String MSG_PRICE_NOT_SET = "Price not set";
     public static final String MSG_PRODUCT_NOT_FOUND = "Product not found";
 
+    public static final String POST_URL = "http://localhost:9393/display";
+
     private final List<Product> products;
     private final HttpClient httpClient;
 
@@ -53,7 +55,7 @@ public class BarcodeEventProcessor {
         String result = this.postedMessage;
         try {
             HttpResponse<String> response = httpClient.send(HttpRequest.newBuilder()
-                            .uri(URI.create("http://localhost:9393/display"))
+                            .uri(URI.create(POST_URL))
                             .POST(HttpRequest.BodyPublishers.ofString("text=" + price))
                             .build(),
                     HttpResponse.BodyHandlers.ofString());
