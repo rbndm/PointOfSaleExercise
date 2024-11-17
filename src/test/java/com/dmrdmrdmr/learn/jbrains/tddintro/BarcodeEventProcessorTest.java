@@ -58,7 +58,68 @@ public class BarcodeEventProcessorTest {
     // t3 - received barcode with product and product has price -> price sent
     @Test
     void testBarcodeWithProductAndNoConnectionErrors() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("234567", "23,51$")), new HttpClient() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(
+                List.of(new Product("234567", "23,51$")),
+                buildMockHttpClientWithFixedResponseCode(200));
+
+        bep.onBarcode("234567");
+
+        Assertions.assertEquals("23,51$", bep.getPostedMessage());
+    }
+
+    // t4 - received barcode with product but no price -> "Price not set" sent
+    @Test
+    void testBarcodeForProductWithoutPrice() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
+        bep.onBarcode("112345");
+        Assertions.assertEquals("Price not set", bep.getPostedMessage());
+    }
+
+    // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
+    @Test
+    void testBarcodeForProductWithPriceButHttpErrorResponse_FirstTime() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(
+                List.of(new Product("645789", "45,12$")),
+                buildMockHttpClientWithFixedResponseCode(500));
+
+        bep.onBarcode("645789");
+
+        Assertions.assertEquals("Price not set", bep.getPostedMessage());
+        Assertions.assertEquals(500, bep.getResponseCode());
+    }
+
+    // New things to check ...
+    @Test
+    void testNullBarcodeWithNullProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
+        bep.onBarcode(null);
+        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+    }
+
+    @Test
+    void testBarcodeWithNullProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
+        bep.onBarcode("13213456");
+        Assertions.assertEquals("Product not found", bep.getPostedMessage());
+    }
+
+    // t7 - empty product list
+    @Test
+    void testNullBarcodeWithEmptyProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
+        bep.onBarcode(null);
+        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+    }
+
+    @Test
+    void testBarcodeWithEmptyProductList() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
+        bep.onBarcode("13213456");
+        Assertions.assertEquals("Product not found", bep.getPostedMessage());
+    }
+
+    private HttpClient buildMockHttpClientWithFixedResponseCode(int responseCode) {
+        return new HttpClient() {
             @Override
             public Optional<CookieHandler> cookieHandler() {
                 return Optional.empty();
@@ -105,11 +166,13 @@ public class BarcodeEventProcessorTest {
             }
 
             @Override
-            public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+            public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler)
+                    throws IOException, InterruptedException {
+
                 return new HttpResponse<T>() {
                     @Override
                     public int statusCode() {
-                        return 200;
+                        return responseCode;
                     }
 
                     @Override
@@ -150,166 +213,20 @@ public class BarcodeEventProcessorTest {
             }
 
             @Override
-            public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+            public <T> CompletableFuture<HttpResponse<T>> sendAsync(
+                    HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+
                 return null;
             }
 
             @Override
-            public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler, HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
+            public <T> CompletableFuture<HttpResponse<T>> sendAsync(
+                    HttpRequest request,
+                    HttpResponse.BodyHandler<T> responseBodyHandler,
+                    HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
                 return null;
             }
-        });
-        bep.onBarcode("234567");
-        Assertions.assertEquals("23,51$", bep.getPostedMessage());
+        };
     }
 
-    // t4 - received barcode with product but no price -> "Price not set" sent
-    @Test
-    void testBarcodeForProductWithoutPrice() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
-        bep.onBarcode("112345");
-        Assertions.assertEquals("Price not set", bep.getPostedMessage());
-    }
-
-    // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
-    @Test
-    void testBarcodeForProductWithPriceButHttpErrorResponse_FirstTime() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("645789", "45,12$")), new MockHttpClientThrowingErrorResponse());
-        bep.onBarcode("645789");
-        Assertions.assertEquals("Price not set", bep.getPostedMessage());
-        Assertions.assertEquals(500, bep.getResponseCode());
-    }
-
-    // New things to check ...
-    @Test
-    void testNullBarcodeWithNullProductList() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.onBarcode(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
-    }
-
-    @Test
-    void testBarcodeWithNullProductList() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.onBarcode("13213456");
-        Assertions.assertEquals("Product not found", bep.getPostedMessage());
-    }
-
-    // t7 - empty product list
-    @Test
-    void testNullBarcodeWithEmptyProductList() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
-        bep.onBarcode(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
-    }
-
-    @Test
-    void testBarcodeWithEmptyProductList() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
-        bep.onBarcode("13213456");
-        Assertions.assertEquals("Product not found", bep.getPostedMessage());
-    }
-
-    private static class MockHttpClientThrowingErrorResponse extends HttpClient {
-
-        @Override
-        public Optional<CookieHandler> cookieHandler() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<Duration> connectTimeout() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Redirect followRedirects() {
-            return null;
-        }
-
-        @Override
-        public Optional<ProxySelector> proxy() {
-            return Optional.empty();
-        }
-
-        @Override
-        public SSLContext sslContext() {
-            return null;
-        }
-
-        @Override
-        public SSLParameters sslParameters() {
-            return null;
-        }
-
-        @Override
-        public Optional<Authenticator> authenticator() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Version version() {
-            return null;
-        }
-
-        @Override
-        public Optional<Executor> executor() {
-            return Optional.empty();
-        }
-
-        @Override
-        public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-            return new HttpResponse<T>() {
-                @Override
-                public int statusCode() {
-                    return 500;
-                }
-
-                @Override
-                public HttpRequest request() {
-                    return request;
-                }
-
-                @Override
-                public Optional<HttpResponse<T>> previousResponse() {
-                    return Optional.empty();
-                }
-
-                @Override
-                public HttpHeaders headers() {
-                    return null;
-                }
-
-                @Override
-                public T body() {
-                    return null;
-                }
-
-                @Override
-                public Optional<SSLSession> sslSession() {
-                    return Optional.empty();
-                }
-
-                @Override
-                public URI uri() {
-                    return null;
-                }
-
-                @Override
-                public Version version() {
-                    return null;
-                }
-            };
-        }
-
-        @Override
-        public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
-            return null;
-        }
-
-        @Override
-        public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler, HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
-            return null;
-        }
-    }
 }
