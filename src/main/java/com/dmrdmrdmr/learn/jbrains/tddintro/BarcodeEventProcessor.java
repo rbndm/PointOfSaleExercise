@@ -19,22 +19,37 @@ public class BarcodeEventProcessor {
 
 
     public void onBarcode(String barcode) {
+        post(getMessageToPost(barcode));
+    }
+
+    private void post(String msg) {
+        setPostedMessage(msg);
+    }
+
+    private String getMessageToPost(String barcode) {
+        String msgToPost = null;
         if(barcode == null) {
-            this.postedMessage = MSG_NULL_BARCODE;
+            msgToPost = MSG_NULL_BARCODE;
         } else {
             if(products != null) {
-                this.postedMessage = products.stream()
+                msgToPost = products.stream()
                         .filter(p -> barcode.equals(p.barcode()))
                         .findFirst()
                         .map(p -> Optional.ofNullable(p.price()).orElse(MSG_PRICE_NOT_SET))
                         .orElse(MSG_PRODUCT_NOT_FOUND);
             } else {
-                this.postedMessage = MSG_PRODUCT_NOT_FOUND;
+                msgToPost = MSG_PRODUCT_NOT_FOUND;
             }
         }
+        return msgToPost;
     }
 
     public String getPostedMessage() {
         return postedMessage;
+    }
+
+    public String setPostedMessage(String msg) {
+        this.postedMessage = msg;
+        return msg;
     }
 }
