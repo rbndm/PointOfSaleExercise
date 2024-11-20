@@ -24,7 +24,7 @@ public class BarcodeEventProcessorTest {
 
     // t1 - received null barcode -> "Null barcode" sent
     @Test
-    void testNullBarcode() {
+    void testGetProductPriceForNullBarcode() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
         String productPrice = bep.getProductPrice(null);
         Assertions.assertEquals("Null barcode", productPrice);
@@ -33,7 +33,7 @@ public class BarcodeEventProcessorTest {
     // t2 - received barcode with no product -> "Product not found" sent
     @ParameterizedTest
     @CsvSource(value = {"012345", "012346", "045678"})
-    void testBarcodesWithNoProduct(String barcode) {
+    void testProductPriceForBarcodesWithNoProduct(String barcode) {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
         String productPrice = bep.getProductPrice(barcode);
         Assertions.assertEquals("Product not found", productPrice, barcode);
@@ -41,7 +41,7 @@ public class BarcodeEventProcessorTest {
 
     // t3 - received barcode with product and product has price -> price sent
     @Test
-    void testBarcodeWithProductAndPrice() {
+    void testGetProductPriceForBarcodeWithProductAndPrice() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("3523452", "22.54$")));
         String productPrice = bep.getProductPrice("3523452");
         Assertions.assertEquals("22.54$", productPrice);
@@ -49,7 +49,7 @@ public class BarcodeEventProcessorTest {
 
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
-    void testBarcodeForProductWithoutPrice() {
+    void testGetProductPriceForBarcodeOfProductWithoutPrice() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
         String productPrice = bep.getProductPrice("112345");
         Assertions.assertEquals("Price not set", productPrice);
@@ -59,14 +59,14 @@ public class BarcodeEventProcessorTest {
 
     // New things to check ...
     @Test
-    void testNullBarcodeWithNullProductList() {
+    void testGetProductPriceForNullBarcodeWithNullProductList() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
         String productPrice = bep.getProductPrice(null);
         Assertions.assertEquals("Null barcode", productPrice);
     }
 
     @Test
-    void testBarcodeWithNullProductList() {
+    void testGetProductPriceForBarcodeWithNullProductList() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
         String productPrice = bep.getProductPrice("13213456");
         Assertions.assertEquals("Product not found", productPrice);
@@ -74,14 +74,14 @@ public class BarcodeEventProcessorTest {
 
     // t7 - empty product list
     @Test
-    void testNullBarcodeWithEmptyProductList() {
+    void testGetProductPriceWithNullBarcodeAndEmptyProductList() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
         String productPrice = bep.getProductPrice(null);
         Assertions.assertEquals("Null barcode", productPrice);
     }
 
     @Test
-    void testBarcodeWithEmptyProductList() {
+    void testGetPriceForBarcodeWithEmptyProductList() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
         String productPrice = bep.getProductPrice("13213456");
         Assertions.assertEquals("Product not found", productPrice);
