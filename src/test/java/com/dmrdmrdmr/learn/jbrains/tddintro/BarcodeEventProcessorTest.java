@@ -51,8 +51,8 @@ public class BarcodeEventProcessorTest {
     @Test
     void testBarcodeForProductWithoutPrice() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
-        bep.getProductPrice("112345");
-        Assertions.assertEquals("Price not set", bep.getPostedMessage());
+        String productPrice = bep.getProductPrice("112345");
+        Assertions.assertEquals("Price not set", productPrice);
     }
 
     // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
