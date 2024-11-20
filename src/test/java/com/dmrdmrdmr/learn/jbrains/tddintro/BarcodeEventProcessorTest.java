@@ -26,8 +26,8 @@ public class BarcodeEventProcessorTest {
     @Test
     void testNullBarcode() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.getProductPrice(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+        String productPrice = bep.getProductPrice(null);
+        Assertions.assertEquals("Null barcode", productPrice);
     }
 
     // t2 - received barcode with no product -> "Product not found" sent
