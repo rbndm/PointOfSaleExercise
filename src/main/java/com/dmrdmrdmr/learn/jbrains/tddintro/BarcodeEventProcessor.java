@@ -18,16 +18,14 @@ public class BarcodeEventProcessor {
     }
 
 
-    public void onBarcode(String barcode) {
-        post(getMessageToPost(barcode));
-    }
-
-    private void post(String msg) {
-        setPostedMessage(msg);
+    public String getProductPrice(String barcode) {
+        String messageToPost = getMessageToPost(barcode);
+        setPostedMessage(messageToPost);
+        return messageToPost;
     }
 
     private String getMessageToPost(String barcode) {
-        String msgToPost = null;
+        String msgToPost;
         if(barcode == null) {
             msgToPost = MSG_NULL_BARCODE;
         } else {
@@ -48,8 +46,7 @@ public class BarcodeEventProcessor {
         return postedMessage;
     }
 
-    public String setPostedMessage(String msg) {
+    public void setPostedMessage(String msg) {
         this.postedMessage = msg;
-        return msg;
     }
 }
