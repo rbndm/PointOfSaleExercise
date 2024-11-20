@@ -1,27 +1,13 @@
 package com.dmrdmrdmr.learn.jbrains.tddintro;
 
+import com.dmrdmrdmr.learn.jbrains.tddintro.util.MockHttpClient;
+import com.dmrdmrdmr.learn.jbrains.tddintro.util.HttpRequestBodyTestUtility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLSession;
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.CookieHandler;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class BarcodeEventProcessorTest {
 
@@ -57,15 +43,20 @@ public class BarcodeEventProcessorTest {
 
     // t3 - received barcode with product and product has price -> price sent
     @Test
-    void testBarcodeForProductWithPrice() {
+    void testBarcodeForProductWithPrice_responseOk() {
+
+        MockHttpClient httpClient = new MockHttpClient(200);
 
         BarcodeEventProcessor bep = new BarcodeEventProcessor(
                 List.of(new Product("112345", "25,55$")),
-                buildMockHttpClientWithFixedResponseCode(200));
+                httpClient);
 
         bep.onBarcode("112345");
+
         Assertions.assertEquals("25,55$", bep.getPostedMessage());
+        Assertions.assertEquals("25,55$", getRequestBodyTextParamValue(httpClient));
     }
+
 
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
@@ -108,114 +99,8 @@ public class BarcodeEventProcessorTest {
     }
 
 
-    private HttpClient buildMockHttpClientWithFixedResponseCode(int responseCode) {
-        return new HttpClient() {
-            @Override
-            public Optional<CookieHandler> cookieHandler() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<Duration> connectTimeout() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Redirect followRedirects() {
-                return null;
-            }
-
-            @Override
-            public Optional<ProxySelector> proxy() {
-                return Optional.empty();
-            }
-
-            @Override
-            public SSLContext sslContext() {
-                return null;
-            }
-
-            @Override
-            public SSLParameters sslParameters() {
-                return null;
-            }
-
-            @Override
-            public Optional<Authenticator> authenticator() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Version version() {
-                return null;
-            }
-
-            @Override
-            public Optional<Executor> executor() {
-                return Optional.empty();
-            }
-
-            @Override
-            public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler)
-                    throws IOException, InterruptedException {
-
-                return new HttpResponse<>() {
-                    @Override
-                    public int statusCode() {
-                        return responseCode;
-                    }
-
-                    @Override
-                    public HttpRequest request() {
-                        return null;
-                    }
-
-                    @Override
-                    public Optional<HttpResponse<T>> previousResponse() {
-                        return Optional.empty();
-                    }
-
-                    @Override
-                    public HttpHeaders headers() {
-                        return null;
-                    }
-
-                    @Override
-                    public T body() {
-                        return null;
-                    }
-
-                    @Override
-                    public Optional<SSLSession> sslSession() {
-                        return Optional.empty();
-                    }
-
-                    @Override
-                    public URI uri() {
-                        return null;
-                    }
-
-                    @Override
-                    public Version version() {
-                        return null;
-                    }
-                };
-            }
-
-            @Override
-            public <T> CompletableFuture<HttpResponse<T>> sendAsync(
-                    HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
-
-                return null;
-            }
-
-            @Override
-            public <T> CompletableFuture<HttpResponse<T>> sendAsync(
-                    HttpRequest request,
-                    HttpResponse.BodyHandler<T> responseBodyHandler,
-                    HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
-                return null;
-            }
-        };
+    private static String getRequestBodyTextParamValue(MockHttpClient httpClient) {
+        return HttpRequestBodyTestUtility.extractBody(httpClient.getLastRequestSent()).replaceAll("text=", "");
     }
+
 }
