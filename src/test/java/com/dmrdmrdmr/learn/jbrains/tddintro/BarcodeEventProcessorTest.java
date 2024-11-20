@@ -35,8 +35,8 @@ public class BarcodeEventProcessorTest {
     @CsvSource(value = {"012345", "012346", "045678"})
     void testBarcodesWithNoProduct(String barcode) {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
-        bep.getProductPrice(barcode);
-        Assertions.assertEquals("Product not found", bep.getPostedMessage(), barcode);
+        String productPrice = bep.getProductPrice(barcode);
+        Assertions.assertEquals("Product not found", productPrice, barcode);
     }
 
     // t3 - received barcode with product and product has price -> price sent
