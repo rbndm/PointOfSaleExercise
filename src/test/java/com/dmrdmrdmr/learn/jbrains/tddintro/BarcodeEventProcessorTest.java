@@ -40,6 +40,12 @@ public class BarcodeEventProcessorTest {
     }
 
     // t3 - received barcode with product and product has price -> price sent
+    @Test
+    void testBarcodeWithProductAndPrice() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("3523452", "22.54$")));
+        bep.onBarcode("3523452");
+        Assertions.assertEquals("22.54$", bep.getPostedMessage());
+    }
 
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
