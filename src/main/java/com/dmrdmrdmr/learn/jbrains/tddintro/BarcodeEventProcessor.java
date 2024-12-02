@@ -2,6 +2,8 @@ package com.dmrdmrdmr.learn.jbrains.tddintro;
 
 public class BarcodeEventProcessor {
 
+    public static final int UNKNOWN_SEND_FAILURE = -1;
+
     private final ProductBarcodeService productBarcodeService;
     private final BarcodePriceSenderService barcodePriceSenderService;
 
@@ -28,12 +30,20 @@ public class BarcodeEventProcessor {
 
         try {
             String productPriceMsg = productBarcodeService.getProductPriceMsg(barcode);
-            BarcodePriceSenderService.SendResult result = barcodePriceSenderService.send(productPriceMsg);
 
-            if(result.statusCode() == 200) {
-                this.lastPriceMessageSent = result.priceMsgSent();
-                this.errorStatusCode = null;
+            try {
+
+                BarcodePriceSenderService.SendResult result = barcodePriceSenderService.send(productPriceMsg);
+
+                if (result.statusCode() == 200) {
+                    this.lastPriceMessageSent = result.priceMsgSent();
+                    this.errorStatusCode = null;
+                }
+
+            } catch (Exception e) {
+                this.errorStatusCode = UNKNOWN_SEND_FAILURE;
             }
+
         } catch (Exception ignored) {}
     }
 

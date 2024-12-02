@@ -44,13 +44,14 @@ public class BarcodeEventProcessorTest {
     // onBarcode, if ProductBarcodeService breaks, does nothing
     @Test
     void testOnBarcodeAndProductBarcodeServiceFails() {
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(new ProductBarcodeService(List.of()) {
-
-            @Override
-            public String getProductPriceMsg(String barcode) {
-                throw new NullPointerException("Bonk!");
-            }
-        }, new BarcodePriceSenderService());
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(
+                new ProductBarcodeService(List.of()) {
+                    @Override
+                    public String getProductPriceMsg(String barcode) {
+                        throw new NullPointerException("Bonk!");
+                    }
+                },
+                new BarcodePriceSenderService());
 
         bep.onBarcode("234235234");
 
@@ -58,12 +59,39 @@ public class BarcodeEventProcessorTest {
     }
 
     // TODO onBarcode, if PriceMessageSenderService breaks, stores the error status
+    @Test
+    void testOnBarcodeAndBarcodePriceSenderServiceFails() {
+
+        String priceMsgToSend = "25,13$";
+        int expectedErrorCode = BarcodeEventProcessor.UNKNOWN_SEND_FAILURE;
+
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(
+                new ProductBarcodeService(List.of()) {
+                    @Override
+                    public String getProductPriceMsg(String barcode) {
+                        return priceMsgToSend;
+                    }
+                },
+                new BarcodePriceSenderService() {
+                    @Override
+                    public SendResult send(String priceMsg) {
+                        throw new IllegalArgumentException("Bonk!");
+                    }
+                });
+
+        bep.onBarcode("698769415649");
+
+        Assertions.assertNull(bep.getLastPriceMessageSent());
+        Assertions.assertEquals(expectedErrorCode, bep.getErrorStatusCode());
+    }
 
 
-    // TODO onBarcode, if everything is ok, stores the price sent correctly
+    // onBarcode, if everything is ok, stores the price sent correctly
     @Test
     void testOnBarcodeHappyPath() {
+
         String expectedPriceMessage = "25,13$";
+
         BarcodeEventProcessor bep = new BarcodeEventProcessor(
                 new ProductBarcodeService(List.of()) {
                     @Override
@@ -81,7 +109,7 @@ public class BarcodeEventProcessorTest {
         bep.onBarcode("00010101");
 
         Assertions.assertEquals(expectedPriceMessage, bep.getLastPriceMessageSent());
-        Assertions.assertEquals(null, bep.getErrorStatusCode());
+        Assertions.assertNull(bep.getErrorStatusCode());
     }
 
 }
