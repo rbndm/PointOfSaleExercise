@@ -9,19 +9,6 @@ import java.util.List;
 
 public class ProductBarcodeServiceTest {
 
-    /*
-                      _____              _____________
-                     ¦     ¦   request  ¦             ¦
-        barcode ---> ¦ POS ¦ ---------> ¦ HTTP server ¦
-                     ¦_____¦ <--------- ¦_____________¦
-                               response
-
-        1) receive barcode
-        2) get product for barcode
-        3) get product price
-        4) send price
-     */
-
     // t1 - received null barcode -> "Null barcode" sent
     @Test
     void testGetProductPriceMsgForNullBarcode() {
