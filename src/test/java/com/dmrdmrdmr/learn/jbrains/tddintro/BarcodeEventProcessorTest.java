@@ -1,6 +1,7 @@
 package com.dmrdmrdmr.learn.jbrains.tddintro;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,7 +23,8 @@ public class BarcodeEventProcessorTest {
         3) send it
      */
 
-    // TODO barcode event processor breaks if it does not have a non null ProductBarcodeService and PriceMessageSenderService
+
+    // barcode event processor breaks if it does not have a non null ProductBarcodeService and PriceMessageSenderService
     @ParameterizedTest
     @MethodSource("testAnyNullDependencyFails_source")
     void testAnyNullDependencyFails(ProductBarcodeService productBarcodeService, BarcodePriceSenderService barcodePriceSenderService) {
@@ -39,7 +41,22 @@ public class BarcodeEventProcessorTest {
     }
 
 
-    // TODO onBarcode, if ProductBarcodeService breaks, does nothing
+    // onBarcode, if ProductBarcodeService breaks, does nothing
+    @Test
+    void testOnBarcodeAndProductBarcodeServiceFails() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(new ProductBarcodeService(List.of()) {
+
+            @Override
+            public String getProductPriceMsg(String barcode) {
+                throw new NullPointerException("Bonk!");
+            }
+        }, new BarcodePriceSenderService());
+
+        bep.onBarcode("234235234");
+
+        Assertions.assertNull(bep.getLastPriceMessageSent());
+    }
+
     // TODO onBarcode, if PriceMessageSenderService breaks, stores the error status
     // TODO onBarcode, if everything is ok, stores the price sent correctly
 

@@ -5,6 +5,8 @@ public class BarcodeEventProcessor {
     private final ProductBarcodeService productBarcodeService;
     private final BarcodePriceSenderService barcodePriceSenderService;
 
+    private String lastPriceMessageSent;
+
     public BarcodeEventProcessor(ProductBarcodeService productBarcodeService, BarcodePriceSenderService barcodePriceSenderService) {
         this.barcodePriceSenderService = barcodePriceSenderService;
         this.productBarcodeService = productBarcodeService;
@@ -20,5 +22,9 @@ public class BarcodeEventProcessor {
             throw new IllegalArgumentException("BarcodePriceSenderService cannot be null");
         }
 
+    }
+
+    public String getLastPriceMessageSent() {
+        return lastPriceMessageSent;
     }
 }
