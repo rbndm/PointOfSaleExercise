@@ -38,6 +38,8 @@ public class BarcodeEventProcessor {
                 if (result.statusCode() == 200) {
                     this.lastPriceMessageSent = result.priceMsgSent();
                     this.errorStatusCode = null;
+                } else {
+                    this.errorStatusCode = result.statusCode();
                 }
 
             } catch (Exception e) {
