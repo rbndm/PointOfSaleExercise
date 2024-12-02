@@ -2,8 +2,13 @@ package com.dmrdmrdmr.learn.jbrains.tddintro;
 
 public class BarcodeEventProcessor {
 
-    private ProductBarcodeService productBarcodeService;
-    private BarcodePriceSenderService barcodePriceSenderService;
+    private final ProductBarcodeService productBarcodeService;
+    private final BarcodePriceSenderService barcodePriceSenderService;
+
+    public BarcodeEventProcessor(ProductBarcodeService productBarcodeService, BarcodePriceSenderService barcodePriceSenderService) {
+        this.barcodePriceSenderService = barcodePriceSenderService;
+        this.productBarcodeService = productBarcodeService;
+    }
 
     public void onBarcode(String number) {
 
