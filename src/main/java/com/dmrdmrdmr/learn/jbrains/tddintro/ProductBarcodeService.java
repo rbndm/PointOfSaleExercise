@@ -3,7 +3,7 @@ package com.dmrdmrdmr.learn.jbrains.tddintro;
 import java.util.List;
 import java.util.Optional;
 
-public class BarcodeEventProcessor {
+public class ProductBarcodeService {
 
     public static final String MSG_NULL_BARCODE = "Null barcode";
     public static final String MSG_PRICE_NOT_SET = "Price not set";
@@ -11,9 +11,7 @@ public class BarcodeEventProcessor {
 
     private final List<Product> products;
 
-    private String postedMessage;
-
-    public BarcodeEventProcessor(List<Product> products) {
+    public ProductBarcodeService(List<Product> products) {
         this.products = products;
     }
 
@@ -34,13 +32,5 @@ public class BarcodeEventProcessor {
             }
         }
         return productPriceMsg;
-    }
-
-    public String getPostedMessage() {
-        return postedMessage;
-    }
-
-    public void setPostedMessage(String msg) {
-        this.postedMessage = msg;
     }
 }
