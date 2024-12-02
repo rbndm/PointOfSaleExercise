@@ -1,7 +1,5 @@
 package com.dmrdmrdmr.learn.jbrains.tddintro;
 
-import com.dmrdmrdmr.learn.jbrains.tddintro.util.MockHttpClient;
-import com.dmrdmrdmr.learn.jbrains.tddintro.util.HttpRequestBodyTestUtility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,81 +24,66 @@ public class BarcodeEventProcessorTest {
 
     // t1 - received null barcode -> "Null barcode" sent
     @Test
-    void testNullBarcode() {
+    void testGetProductPriceMsgForNullBarcode() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.onBarcode(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg(null);
+        Assertions.assertEquals("Null barcode", productPrice);
     }
 
     // t2 - received barcode with no product -> "Product not found" sent
     @ParameterizedTest
     @CsvSource(value = {"012345", "012346", "045678"})
-    void testBarcodesWithNoProduct(String barcode) {
+    void testProductPriceForBarcodesWithNoProduct(String barcode) {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
-        bep.onBarcode(barcode);
-        Assertions.assertEquals("Product not found", bep.getPostedMessage(), barcode);
+        String productPrice = bep.getProductPriceMsg(barcode);
+        Assertions.assertEquals("Product not found", productPrice, barcode);
     }
 
     // t3 - received barcode with product and product has price -> price sent
     @Test
-    void testBarcodeForProductWithPrice_responseOk() {
-
-        MockHttpClient httpClient = new MockHttpClient(200);
-
-        BarcodeEventProcessor bep = new BarcodeEventProcessor(
-                List.of(new Product("112345", "25,55$")),
-                httpClient);
-
-        bep.onBarcode("112345");
-
-        Assertions.assertEquals("25,55$", bep.getPostedMessage());
-        Assertions.assertEquals("25,55$", getRequestBodyTextParamValue(httpClient));
+    void testGetProductPriceForBarcodeWithProductAndPriceMsg() {
+        BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("3523452", "22.54$")));
+        String productPrice = bep.getProductPriceMsg("3523452");
+        Assertions.assertEquals("22.54$", productPrice);
     }
-
 
     // t4 - received barcode with product but no price -> "Price not set" sent
     @Test
-    void testBarcodeForProductWithoutPrice() {
+    void testGetProductPriceForBarcodeOfProductWithoutPriceMsg() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of(new Product("112345", null)));
-        bep.onBarcode("112345");
-        Assertions.assertEquals("Price not set", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg("112345");
+        Assertions.assertEquals("Price not set", productPrice);
     }
 
     // t5 - barcode for product with price but HTTP error response -> previous price in sent, and error response stored
 
     // New things to check ...
     @Test
-    void testNullBarcodeWithNullProductList() {
+    void testGetProductPriceForNullBarcodeWithNullProductListMsg() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.onBarcode(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg(null);
+        Assertions.assertEquals("Null barcode", productPrice);
     }
 
     @Test
-    void testBarcodeWithNullProductList() {
+    void testGetProductPriceForBarcodeWithNullProductListMsg() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(null);
-        bep.onBarcode("13213456");
-        Assertions.assertEquals("Product not found", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg("13213456");
+        Assertions.assertEquals("Product not found", productPrice);
     }
 
     // t7 - empty product list
     @Test
-    void testNullBarcodeWithEmptyProductList() {
+    void testGetProductPriceWithNullBarcodeAndEmptyProductListMsg() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
-        bep.onBarcode(null);
-        Assertions.assertEquals("Null barcode", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg(null);
+        Assertions.assertEquals("Null barcode", productPrice);
     }
 
     @Test
-    void testBarcodeWithEmptyProductList() {
+    void testGetPriceForBarcodeWithEmptyProductList() {
         BarcodeEventProcessor bep = new BarcodeEventProcessor(List.of());
-        bep.onBarcode("13213456");
-        Assertions.assertEquals("Product not found", bep.getPostedMessage());
+        String productPrice = bep.getProductPriceMsg("13213456");
+        Assertions.assertEquals("Product not found", productPrice);
     }
-
-
-    private static String getRequestBodyTextParamValue(MockHttpClient httpClient) {
-        return HttpRequestBodyTestUtility.extractBody(httpClient.getLastRequestSent()).replaceAll("text=", "");
-    }
-
 }

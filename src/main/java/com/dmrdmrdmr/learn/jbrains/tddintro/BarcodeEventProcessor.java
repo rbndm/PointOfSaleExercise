@@ -32,12 +32,13 @@ public class BarcodeEventProcessor {
     }
 
 
-    public void onBarcode(String barcode) {
+    public String getProductPriceMsg(String barcode) {
+        String productPriceMsg;
         if(barcode == null) {
-            this.postedMessage = MSG_NULL_BARCODE;
+            productPriceMsg = MSG_NULL_BARCODE;
         } else {
             if(products != null) {
-                this.postedMessage = products.stream()
+                productPriceMsg = products.stream()
                         .filter(p -> barcode.equals(p.barcode()))
                         .findFirst()
                         .map(p -> Optional.ofNullable(p.price())
@@ -45,9 +46,10 @@ public class BarcodeEventProcessor {
                                 .orElse(MSG_PRICE_NOT_SET))
                         .orElse(MSG_PRODUCT_NOT_FOUND);
             } else {
-                this.postedMessage = MSG_PRODUCT_NOT_FOUND;
+                productPriceMsg = MSG_PRODUCT_NOT_FOUND;
             }
         }
+        return productPriceMsg;
     }
 
     private String sendPriceToServer(String price) {
@@ -74,5 +76,9 @@ public class BarcodeEventProcessor {
 
     public String getPostedMessage() {
         return postedMessage;
+    }
+
+    public void setPostedMessage(String msg) {
+        this.postedMessage = msg;
     }
 }
